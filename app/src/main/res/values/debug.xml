@@ -1,0 +1,4 @@
+<resources>
+    <integer name="debugLevel">1</integer>
+    <bool name="debugToast">false</bool>
+</resources>
