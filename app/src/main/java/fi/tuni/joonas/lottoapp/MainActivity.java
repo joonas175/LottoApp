@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.constraint.Group;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -28,8 +30,12 @@ import java.util.TreeSet;
 public class MainActivity extends MyBaseActivity {
 
     TreeSet<Integer> lottoNumbers;
+    int[] lottoNumbersInt;
     MyReceiver myReceiver;
     int interval;
+    ArrayList<Button> buttons;
+    int difficulty;
+    MenuItem checkedDiff;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +44,12 @@ public class MainActivity extends MyBaseActivity {
         Debug.loadDebug(this);
 
         interval = 100;
-
+        buttons = new ArrayList<Button>();
         setButtons();
 
         lottoNumbers = new TreeSet<Integer>();
+        difficulty = 7;
+
 
         myReceiver = new MyReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
@@ -58,6 +66,8 @@ public class MainActivity extends MyBaseActivity {
             for(int j = 0; j < row.getChildCount(); j++){
                 Button butt = (Button) row.getChildAt(j);
                 butt.setText(lottoNumber + "");
+                butt.setTextColor(Color.BLACK);
+                buttons.add(butt);
                 lottoNumber++;
             }
         }
@@ -89,18 +99,27 @@ public class MainActivity extends MyBaseActivity {
 
     public void feelingLucky(View v){
 
+        if(lottoNumbers.size() == 7){
+            Intent intent = new Intent(this, LottoService.class);
 
-        Intent intent = new Intent(this, LottoService.class);
 
+            intent.putExtra("lottoNumbers", IntegerSetToIntArray(lottoNumbers));
+            intent.putExtra("interval", interval);
+            intent.putExtra("diff", difficulty);
+            lottoNumbersInt = IntegerSetToIntArray(lottoNumbers);
+            startService(intent);
+        } else {
+            Toast.makeText(this, "Pick 7 numbers!", Toast.LENGTH_LONG).show();
+        }
 
-        intent.putExtra("lottoNumbers", IntegerSetToIntArray(lottoNumbers));
-        startService(intent);
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.mainmenu, menu);
+        checkedDiff = menu.findItem(R.id.diff7);
+        checkedDiff.setChecked(true);
         return true;
     }
 
@@ -108,19 +127,22 @@ public class MainActivity extends MyBaseActivity {
 
         switch(item.getItemId()){
             case(R.id.incDiff):
-                interval+=100;
+                interval+=20;
                 Debug.print(TAG, "Interval set to " + interval,1);
                 Toast.makeText(this, "Interval set to " + interval, Toast.LENGTH_LONG).show();
                 break;
             case(R.id.decDiff):
-                if(interval >= 100){
-                    interval-=100;
+                if(interval >= 40){
+                    interval-=20;
                 }
                 Debug.print(TAG, "Interval set to " + interval ,1);
                 Toast.makeText(this, "Interval set to " + interval, Toast.LENGTH_LONG).show();
-            break;
-        }
+                break;
+            case(R.id.diff5): difficulty = 5; checkedDiff.setChecked(false); item.setChecked(true); checkedDiff = item; break;
+            case(R.id.diff6): difficulty = 6; checkedDiff.setChecked(false); item.setChecked(true); checkedDiff = item; break;
+            case(R.id.diff7): difficulty = 7; checkedDiff.setChecked(false); item.setChecked(true); checkedDiff = item; break;
 
+        }
         return true;
 
     }
@@ -143,10 +165,32 @@ public class MainActivity extends MyBaseActivity {
             Bundle bundle = intent.getExtras().getBundle("bundle");
             int weeks = bundle.getInt("weeks");
             boolean won = !(bundle.getBoolean("running"));
+            int[] rngNumbers = bundle.getIntArray("rngNumbers");
+            flashButtons(rngNumbers);
+            ((TextView) findViewById(R.id.weeks)).setText("Weeks passed: " + weeks);
             if(won){
                 Toast.makeText(MainActivity.this, "Lottery won!", Toast.LENGTH_LONG).show();
             }
             //Debug.print(TAG, "Weeks passed: " + weeks, 1);
+        }
+    }
+
+    private void flashButtons(int[] rngNumbers) {
+        for(Button butt : buttons){
+            butt.setTextColor(Color.BLACK);
+        }
+        for(Button butt : buttons){
+            int buttonNumber = Integer.parseInt(butt.getText().toString());
+            for(int num : lottoNumbersInt){
+                if (buttonNumber == num) {
+                    butt.setTextColor(Color.MAGENTA);
+                }
+            }
+            for(int num : rngNumbers){
+                if(buttonNumber == num){
+                    butt.setTextColor(Color.BLUE);
+                }
+            }
         }
     }
 
@@ -156,6 +200,11 @@ public class MainActivity extends MyBaseActivity {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
         }
         super.onDestroy();
+    }
+
+    public void stopLottoService(View v){
+        Intent intent = new Intent(this, LottoService.class);
+        stopService(intent);
     }
 
 }

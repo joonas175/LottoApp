@@ -101,6 +101,7 @@
             android:layout_weight="1">
 
             <TextView
+                android:id="@+id/weeks"
                 android:layout_weight="1"
                 android:textAlignment="center"
                 android:text="Lotto"/>
@@ -117,6 +118,21 @@
                 android:layout_height="wrap_content"
                 android:text="I'm feeling lucky!"
                 android:onClick="feelingLucky"/>
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <Button
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Stop!"
+                android:onClick="stopLottoService"/>
+
         </TableRow>
 
 

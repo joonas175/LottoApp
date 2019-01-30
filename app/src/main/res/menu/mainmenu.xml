@@ -10,4 +10,22 @@
         android:id="@+id/incDiff"
         android:title="+"
         app:showAsAction="always|withText" />
+
+    <group android:id="@+id/group" android:checkableBehavior="single">
+        <item
+            android:id="@+id/diff5"
+            android:checkable="true"
+            android:title="Difficulty 5"
+            app:showAsAction="collapseActionView" />
+        <item
+            android:id="@+id/diff6"
+            android:checkable="true"
+            android:title="Difficulty 6"
+            app:showAsAction="collapseActionView" />
+        <item
+            android:id="@+id/diff7"
+            android:checkable="true"
+            android:title="Difficulty 7"
+            app:showAsAction="collapseActionView" />
+    </group>
 </menu>

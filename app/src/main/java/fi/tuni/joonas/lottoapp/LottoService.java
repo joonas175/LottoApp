@@ -35,8 +35,9 @@ public class LottoService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
 
-        interval = 0;
-        difficulty = 5;
+        interval = intent.getExtras().getInt("interval");
+        difficulty = intent.getExtras().getInt("diff");
+        Debug.print("LottoService", "Difficulty: " + difficulty, 1);
         weeks = 0;
 
 
@@ -174,6 +175,10 @@ public class LottoService extends Service {
         manager.sendBroadcast(i);
     }
 
+    @Override
+    public void onDestroy(){
+        running = false;
+    }
 
 
 }
