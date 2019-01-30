@@ -1,9 +1,13 @@
 package fi.tuni.joonas.lottoapp;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +28,8 @@ import java.util.TreeSet;
 public class MainActivity extends MyBaseActivity {
 
     TreeSet<Integer> lottoNumbers;
+    MyReceiver myReceiver;
+    int interval;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +37,18 @@ public class MainActivity extends MyBaseActivity {
         setContentView(R.layout.activity_main);
         Debug.loadDebug(this);
 
+        interval = 100;
+
+        setButtons();
+
+        lottoNumbers = new TreeSet<Integer>();
+
+        myReceiver = new MyReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
+                new IntentFilter("asd"));
+    }
+
+    public void setButtons(){
         TableLayout lottoTable = findViewById(R.id.lottoNumbers);
 
         int tableChildrenCount = lottoTable.getChildCount();
@@ -38,14 +56,11 @@ public class MainActivity extends MyBaseActivity {
         for(int i = 0; i < tableChildrenCount; i++){
             TableRow row = (TableRow) lottoTable.getChildAt(i);
             for(int j = 0; j < row.getChildCount(); j++){
-
                 Button butt = (Button) row.getChildAt(j);
                 butt.setText(lottoNumber + "");
                 lottoNumber++;
             }
         }
-
-        lottoNumbers = new TreeSet<Integer>();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -93,12 +108,16 @@ public class MainActivity extends MyBaseActivity {
 
         switch(item.getItemId()){
             case(R.id.incDiff):
-                Debug.print(TAG, "Increasing difficulty" ,1);
-                Toast.makeText(this, "Increasing difficulty", Toast.LENGTH_LONG).show();
+                interval+=100;
+                Debug.print(TAG, "Interval set to " + interval,1);
+                Toast.makeText(this, "Interval set to " + interval, Toast.LENGTH_LONG).show();
                 break;
             case(R.id.decDiff):
-                Debug.print(TAG, "Decreasing difficulty" ,1);
-                Toast.makeText(this, "Decreasing difficulty", Toast.LENGTH_LONG).show();
+                if(interval >= 100){
+                    interval-=100;
+                }
+                Debug.print(TAG, "Interval set to " + interval ,1);
+                Toast.makeText(this, "Interval set to " + interval, Toast.LENGTH_LONG).show();
             break;
         }
 
@@ -115,6 +134,28 @@ public class MainActivity extends MyBaseActivity {
         }
 
         return lottoNumbersAsInt;
+    }
+
+    class MyReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras().getBundle("bundle");
+            int weeks = bundle.getInt("weeks");
+            boolean won = !(bundle.getBoolean("running"));
+            if(won){
+                Toast.makeText(MainActivity.this, "Lottery won!", Toast.LENGTH_LONG).show();
+            }
+            //Debug.print(TAG, "Weeks passed: " + weeks, 1);
+        }
+    }
+
+    public void onDestroy(){
+        Debug.print(TAG, "onDestroy()", 1);
+        if(myReceiver != null){
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
+        }
+        super.onDestroy();
     }
 
 }

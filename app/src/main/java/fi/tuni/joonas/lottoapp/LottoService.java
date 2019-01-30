@@ -1,9 +1,17 @@
 package fi.tuni.joonas.lottoapp;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.Arrays;
 
@@ -13,6 +21,8 @@ public class LottoService extends Service {
     int interval;
 
     int[] lottoNumbers;
+
+    int weeks;
 
     int difficulty;
 
@@ -26,7 +36,9 @@ public class LottoService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId){
 
         interval = 0;
-        difficulty = 7;
+        difficulty = 5;
+        weeks = 0;
+
 
         lottoNumbers = intent.getExtras().getIntArray("lottoNumbers");
         printNumbers();
@@ -53,11 +65,21 @@ public class LottoService extends Service {
         public void run() {
             running = true;
             while(running){
-
-                if(intArraysEqual(lottoNumbers, lottoRNGMachine())){
+                int[] rng = lottoRNGMachine();
+                if(intArraysEqual(lottoNumbers, rng)){
                     running = false;
+                    showNotification();
+
+                    stopSelf();
+                } else {
+                    weeks++;
 
                 }
+                Bundle bundle = new Bundle();
+                bundle.putInt("weeks", weeks);
+                bundle.putBoolean("running", running);
+                bundle.putIntArray("rngNumbers", rng);
+                sendBroadcastToMain(bundle);
 
                 try {
                     Thread.sleep(interval);
@@ -74,7 +96,6 @@ public class LottoService extends Service {
             }
 
             Arrays.sort(random);
-
             return random;
 
         }
@@ -94,6 +115,8 @@ public class LottoService extends Service {
             }
             return false;
         }
+
+
     }
 
     @Override
@@ -108,4 +131,49 @@ public class LottoService extends Service {
         }
         return aAsString;
     }
+
+    public void showNotification(){
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+        mBuilder.setSmallIcon(R.mipmap.ic_launcher);
+        mBuilder.setContentTitle("Lottery");
+        mBuilder.setContentText("Lottery won!");
+
+        Intent targetIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(contentIntent);
+
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            String CHANNEL_ID = "my_channel_01";
+            CharSequence name = "my_channel";
+            String Description = "This is my channel";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setDescription(Description);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.RED);
+            mChannel.setShowBadge(false);
+            manager.createNotificationChannel(mChannel);
+            mBuilder.setChannelId(CHANNEL_ID);
+        }
+
+        Notification noti = mBuilder.build();
+
+        int mId = 1;
+        manager.notify(mId, noti);
+    }
+
+    public void sendBroadcastToMain(Bundle bundle){
+
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(this);
+        Intent i = new Intent("asd");
+        i.putExtra("bundle", bundle);
+        manager.sendBroadcast(i);
+    }
+
+
+
 }

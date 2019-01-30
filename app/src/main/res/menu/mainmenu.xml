@@ -3,11 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/incDiff"
+        android:id="@+id/decDiff"
         android:title="-"
         app:showAsAction="always|withText" />
     <item
-        android:id="@+id/decDiff"
+        android:id="@+id/incDiff"
         android:title="+"
         app:showAsAction="always|withText" />
 </menu>
