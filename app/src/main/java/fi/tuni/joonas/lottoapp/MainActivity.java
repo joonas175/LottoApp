@@ -1,5 +1,6 @@
 package fi.tuni.joonas.lottoapp;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -16,6 +17,7 @@ import android.widget.TableRow;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -71,11 +73,13 @@ public class MainActivity extends MyBaseActivity {
 
 
     public void feelingLucky(View v){
-        String printtaus = "";
-        for(Integer i : lottoNumbers){
-            printtaus += i + " ";
-        }
-        Debug.print(TAG, printtaus, 1);
+
+
+        Intent intent = new Intent(this, LottoService.class);
+
+
+        intent.putExtra("lottoNumbers", IntegerSetToIntArray(lottoNumbers));
+        startService(intent);
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -100,6 +104,17 @@ public class MainActivity extends MyBaseActivity {
 
         return true;
 
+    }
+
+    public int[] IntegerSetToIntArray(Set<Integer> set){
+        int[] lottoNumbersAsInt = new int[7];
+        Object[] lottoNumbersTemp = set.toArray();
+
+        for(int i = 0; i < lottoNumbersTemp.length; i++){
+            lottoNumbersAsInt[i] = (int) lottoNumbersTemp[i];
+        }
+
+        return lottoNumbersAsInt;
     }
 
 }
